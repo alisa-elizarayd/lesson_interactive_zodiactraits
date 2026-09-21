@@ -70,7 +70,6 @@
             background: rgba(255,255,255,0.9);
             border-color: #e6a54c;
         }
-        /* Подсветка колонки, когда выбрано слово и можно сюда положить */
         .drop-zone.target-hint {
             border-color: #2c3e50;
             background: rgba(255, 255, 255, 0.85);
@@ -93,7 +92,6 @@
         .card:active { transform: scale(0.96); }
         .card.correct { background: #d4edda; border-color: #4caf50; color: #155724; }
         .card.wrong { background: #f8d7da; border-color: #f44336; color: #721c24; }
-        /* Подсветка выбранного слова */
         .card.selected {
             border-color: #e6a54c;
             background: #fff3e0;
@@ -165,7 +163,7 @@
 </head>
 <body>
     <h1>Charaktereigenschaften: Vermutungen</h1>
-    <p class="subtitle">Welche positiven und negativen Eigenschaften geh&ouml;ren zu welchem Sternzeichen?</p>
+    <p class="subtitle">Welche positiven und negativen Eigenschaften gehören zu welchem Sternzeichen?</p>
     <div id="hint">Tippe ein Wort an, dann tippe auf eine Kategorie.</div>
 
     <div class="container">
@@ -185,8 +183,8 @@
     </div>
 
     <div class="controls">
-        <button class="btn-check" onclick="checkAnswers()">Pr&uuml;fen</button>
-        <button class="btn-reset" onclick="resetGame()">Zur&uuml;cksetzen</button>
+        <button class="btn-check" onclick="checkAnswers()">Prüfen</button>
+        <button class="btn-reset" onclick="resetGame()">Zurücksetzen</button>
     </div>
 
     <div id="message"></div>
@@ -198,18 +196,18 @@
             { text: "kontaktfreudig", type: "positive" },
             { text: "kreativ", type: "positive" },
             { text: "hilfsbereit", type: "positive" },
-            { text: "grosszuegig", type: "positive" },
-            { text: "feinfuehlig", type: "positive" },
+            { text: "großzügig", type: "positive" },
+            { text: "feinfühlig", type: "positive" },
             { text: "zielstrebig", type: "positive" },
             { text: "fantasievoll", type: "positive" },
             { text: "ungeduldig", type: "negative" },
             { text: "arrogant", type: "negative" },
             { text: "nachtragend", type: "negative" },
-            { text: "oberflaechlich", type: "negative" },
+            { text: "oberflächlich", type: "negative" },
             { text: "misstrauisch", type: "negative" },
             { text: "disziplinlos", type: "negative" },
             { text: "egoistisch", type: "negative" },
-            { text: "ueberempfindlich", type: "negative" },
+            { text: "überempfindlich", type: "negative" },
             { text: "unentschlossen", type: "negative" }
         ];
 
@@ -225,7 +223,6 @@
         var selectedCard = null;
         var draggedItem = null;
 
-        // Определяем, сенсорное ли устройство
         var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
         function createCard(text, type) {
@@ -234,7 +231,6 @@
             div.textContent = text;
             div.setAttribute('data-type', type);
 
-            // Только для мыши оставляем draggable
             if (!isTouch) {
                 div.draggable = true;
                 div.addEventListener('dragstart', function(e) {
@@ -250,7 +246,6 @@
                 div.draggable = false;
             }
 
-            // === Главное: КЛИК / ТАП ===
             div.addEventListener('click', function(e) {
                 e.stopPropagation();
                 handleCardClick(this);
@@ -259,9 +254,7 @@
             return div;
         }
 
-        // Логика клика по слову
         function handleCardClick(card) {
-            // Если кликнули по уже выбранному — снимаем выбор
             if (selectedCard === card) {
                 card.classList.remove('selected');
                 selectedCard = null;
@@ -270,7 +263,6 @@
                 return;
             }
 
-            // Снимаем выбор с предыдущего
             if (selectedCard) {
                 selectedCard.classList.remove('selected');
             }
@@ -282,23 +274,21 @@
             var where = "";
 
             if (parent === leftPanel || parent === rightPanel) {
-                where = "W&auml;hle jetzt: Positiv oder Negativ.";
+                where = "Wähle jetzt: Positiv oder Negativ.";
             } else if (parent === positiveZone || parent === negativeZone) {
-                where = "W&auml;hle: andere Kategorie oder Seitenleiste (zum Entfernen).";
+                where = "Wähle: andere Kategorie oder Seitenleiste (zum Entfernen).";
             }
 
-            hintEl.innerHTML = "Ausgew&auml;hlt: <b>" + card.textContent + "</b>. " + where;
+            hintEl.innerHTML = "Ausgewählt: <b>" + card.textContent + "</b>. " + where;
             highlightPossibleTargets(parent);
         }
 
-        // Подсветка возможных целей
         function highlightPossibleTargets(currentParent) {
             clearZoneHints();
             if (currentParent === leftPanel || currentParent === rightPanel) {
                 positiveZone.classList.add('target-hint');
                 negativeZone.classList.add('target-hint');
             } else {
-                // Если слово в колонке — подсветим боковые панели
                 leftPanel.classList.add('target-hint');
                 rightPanel.classList.add('target-hint');
                 if (currentParent === positiveZone) {
@@ -316,14 +306,12 @@
             rightPanel.classList.remove('target-hint');
         }
 
-        // Логика клика по зоне (куда переносим)
         function handleZoneClick(zone) {
             if (!selectedCard) {
                 hintEl.textContent = "Bitte zuerst ein Wort antippen.";
                 return;
             }
 
-            // Нельзя положить слово в ту же самую зону, где оно уже лежит
             if (selectedCard.parentElement === zone) {
                 hintEl.textContent = "Das Wort ist schon hier.";
                 return;
@@ -334,11 +322,9 @@
             selectedCard = null;
             clearZoneHints();
             hintEl.textContent = "Tippe ein Wort an, dann tippe auf eine Kategorie.";
-            // Прячем старое сообщение, если было
             messageEl.style.display = 'none';
         }
 
-        // Инициализация
         function initGame() {
             leftPanel.innerHTML = '';
             rightPanel.innerHTML = '';
@@ -361,16 +347,13 @@
             }
         }
 
-        // ==== Клик по зонам ====
         [positiveZone, negativeZone, leftPanel, rightPanel].forEach(function(zone) {
             zone.addEventListener('click', function(e) {
-                // Если кликнули не по карточке (карточки сами обрабатывают клик)
                 if (e.target.classList.contains('card')) return;
                 handleZoneClick(zone);
             });
         });
 
-        // ==== Drag & Drop (для компьютера) ====
         function setupDropZone(zone) {
             zone.addEventListener('dragover', function(e) {
                 e.preventDefault();
@@ -393,7 +376,6 @@
         setupDropZone(leftPanel);
         setupDropZone(rightPanel);
 
-        // ==== Проверка ====
         function checkAnswers() {
             if (selectedCard) {
                 selectedCard.classList.remove('selected');
@@ -432,7 +414,7 @@
             messageEl.style.display = 'block';
 
             if (totalInZones === 0) {
-                messageEl.textContent = "Bitte ziehe zuerst die W&ouml;rter in die Kategorien!";
+                messageEl.textContent = "Bitte ziehe zuerst die Wörter in die Kategorien!";
                 messageEl.className = "msg-error";
                 return;
             }
@@ -448,7 +430,6 @@
         }
 
         function resetGame() {
-            // Перемешиваем слова заново
             shuffled = wordsData.slice().sort(function() { return 0.5 - Math.random(); });
             initGame();
         }
