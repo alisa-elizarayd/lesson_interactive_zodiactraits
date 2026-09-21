@@ -11,11 +11,13 @@
             margin: 0;
             padding: 10px;
             color: #333;
-            -webkit-tap-highlight-color: transparent; /* Убирает синюю подсветку при тапе на телефоне */
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
         }
-        h1 { text-align: center; color: #2c3e50; font-size: 1.5rem; margin-bottom: 5px; }
-        .subtitle { text-align: center; font-size: 0.9rem; margin-top: 0; color: #555; }
-        
+        h1 { text-align: center; color: #2c3e50; font-size: 1.4rem; margin: 5px 0; }
+        .subtitle { text-align: center; font-size: 0.85rem; margin: 0 0 10px 0; color: #555; }
+
         .container {
             display: flex;
             justify-content: center;
@@ -24,8 +26,7 @@
             max-width: 1200px;
             margin: 0 auto;
         }
-        
-        /* Боковые панели */
+
         .side {
             display: flex;
             flex-direction: column;
@@ -33,8 +34,7 @@
             width: 160px;
             padding-top: 10px;
         }
-        
-        /* Центральные колонки */
+
         .zone-wrapper {
             display: flex;
             flex-direction: column;
@@ -45,7 +45,7 @@
             background: white;
             padding: 10px;
             border-radius: 10px;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: bold;
             margin-bottom: 8px;
             width: 100%;
@@ -57,21 +57,26 @@
             border: 2px dashed #888;
             border-radius: 10px;
             width: 100%;
-            height: 400px;
+            height: 380px;
             padding: 8px;
             display: flex;
             flex-direction: column;
             gap: 6px;
             overflow-y: auto;
-            transition: background 0.2s;
+            transition: background 0.2s, border-color 0.2s;
             box-sizing: border-box;
         }
         .drop-zone.drag-over {
             background: rgba(255,255,255,0.9);
             border-color: #e6a54c;
         }
-        
-        /* Карточки слов */
+        /* Подсветка колонки, когда выбрано слово и можно сюда положить */
+        .drop-zone.target-hint {
+            border-color: #2c3e50;
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: inset 0 0 12px rgba(44, 62, 80, 0.25);
+        }
+
         .card {
             background: white;
             padding: 10px 5px;
@@ -80,20 +85,25 @@
             cursor: pointer;
             text-align: center;
             font-size: 14px;
-            user-select: none;
             border: 2px solid transparent;
-            transition: transform 0.1s, background 0.2s;
+            transition: transform 0.1s, background 0.2s, border-color 0.2s;
             word-wrap: break-word;
+            touch-action: manipulation;
         }
-        .card:active { transform: scale(0.95); }
+        .card:active { transform: scale(0.96); }
         .card.correct { background: #d4edda; border-color: #4caf50; color: #155724; }
         .card.wrong { background: #f8d7da; border-color: #f44336; color: #721c24; }
-        
-        /* Кнопки */
+        /* Подсветка выбранного слова */
+        .card.selected {
+            border-color: #e6a54c;
+            background: #fff3e0;
+            box-shadow: 0 0 10px rgba(230, 165, 76, 0.8);
+            transform: scale(1.03);
+        }
+
         .controls {
             text-align: center;
-            margin-top: 20px;
-            margin-bottom: 20px;
+            margin: 20px 0;
         }
         button {
             padding: 12px 20px;
@@ -107,7 +117,16 @@
         }
         .btn-check { background: #2c3e50; color: white; }
         .btn-reset { background: #e74c3c; color: white; }
-        
+
+        #hint {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #2c3e50;
+            font-weight: bold;
+            margin: 5px 0 10px 0;
+            min-height: 1.2em;
+        }
+
         #message {
             text-align: center;
             font-size: 16px;
@@ -116,18 +135,14 @@
             border-radius: 6px;
             display: none;
             max-width: 600px;
-            margin: 0 auto;
+            margin: 0 auto 20px auto;
             word-wrap: break-word;
         }
         .msg-success { background: #d4edda; color: #155724; }
         .msg-error { background: #f8d7da; color: #721c24; }
 
-        /* Адаптивность для телефонов */
         @media (max-width: 800px) {
-            .container {
-                flex-direction: column;
-                align-items: center;
-            }
+            .container { flex-direction: column; align-items: center; }
             .side {
                 flex-direction: row;
                 flex-wrap: wrap;
@@ -142,27 +157,20 @@
                 padding: 8px 6px;
                 font-size: 13px;
             }
-            .zone-wrapper {
-                width: 100%;
-                max-width: 400px;
-            }
-            .drop-zone {
-                height: 200px;
-            }
-            .zone-title {
-                font-size: 1.1rem;
-                padding: 8px;
-            }
+            .zone-wrapper { width: 100%; max-width: 420px; }
+            .drop-zone { height: 180px; }
+            .zone-title { font-size: 1rem; padding: 8px; }
         }
     </style>
 </head>
 <body>
     <h1>Charaktereigenschaften: Vermutungen</h1>
     <p class="subtitle">Welche positiven und negativen Eigenschaften geh&ouml;ren zu welchem Sternzeichen?</p>
+    <div id="hint">Tippe ein Wort an, dann tippe auf eine Kategorie.</div>
 
     <div class="container">
-        <div class="side" id="left-panel"></div>
-        
+        <div class="side" id="left-panel" data-type="side"></div>
+
         <div class="zone-wrapper">
             <div class="zone-title">Positiv</div>
             <div class="drop-zone" id="positive-zone" data-type="positive"></div>
@@ -173,18 +181,17 @@
             <div class="drop-zone" id="negative-zone" data-type="negative"></div>
         </div>
 
-        <div class="side" id="right-panel"></div>
+        <div class="side" id="right-panel" data-type="side"></div>
     </div>
 
     <div class="controls">
         <button class="btn-check" onclick="checkAnswers()">Pr&uuml;fen</button>
         <button class="btn-reset" onclick="resetGame()">Zur&uuml;cksetzen</button>
     </div>
-    
+
     <div id="message"></div>
 
     <script>
-        // Список слов с правильными ответами
         var wordsData = [
             { text: "intelligent", type: "positive" },
             { text: "neugierig", type: "positive" },
@@ -207,81 +214,143 @@
         ];
 
         var shuffled = wordsData.slice().sort(function() { return 0.5 - Math.random(); });
-        
+
         var leftPanel = document.getElementById('left-panel');
         var rightPanel = document.getElementById('right-panel');
         var positiveZone = document.getElementById('positive-zone');
         var negativeZone = document.getElementById('negative-zone');
         var messageEl = document.getElementById('message');
-        var draggedItem = null;
-        var touchTimeout = null; // Для предотвращения двойного срабатывания
+        var hintEl = document.getElementById('hint');
 
-        // Создание карточки
+        var selectedCard = null;
+        var draggedItem = null;
+
+        // Определяем, сенсорное ли устройство
+        var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
         function createCard(text, type) {
             var div = document.createElement('div');
             div.className = 'card';
-            div.draggable = true;
             div.textContent = text;
             div.setAttribute('data-type', type);
-            
-            // --- Drag & Drop для Компьютера ---
-            div.addEventListener('dragstart', function(e) {
-                draggedItem = this;
-                e.dataTransfer.effectAllowed = 'move';
-                setTimeout(function() { div.style.opacity = '0.5'; }, 0);
-            });
-            
-            div.addEventListener('dragend', function() {
-                this.style.opacity = '1';
-                draggedItem = null;
-            });
 
-            // --- КЛИК / ТАП для Мобильных устройств ---
+            // Только для мыши оставляем draggable
+            if (!isTouch) {
+                div.draggable = true;
+                div.addEventListener('dragstart', function(e) {
+                    draggedItem = this;
+                    e.dataTransfer.effectAllowed = 'move';
+                    setTimeout(function() { div.style.opacity = '0.5'; }, 0);
+                });
+                div.addEventListener('dragend', function() {
+                    this.style.opacity = '1';
+                    draggedItem = null;
+                });
+            } else {
+                div.draggable = false;
+            }
+
+            // === Главное: КЛИК / ТАП ===
             div.addEventListener('click', function(e) {
-                // Если это тач-устройство, обрабатываем клик как перемещение
-                handleTap(this);
+                e.stopPropagation();
+                handleCardClick(this);
             });
-
-            // Отключаем стандартное поведение drag на тач-устройствах
-            div.addEventListener('touchstart', function(e) {
-                // Не даем браузеру скроллить страницу при перетаскивании
-                // Но оставляем возможность скролла контейнера
-            }, { passive: true });
 
             return div;
         }
 
-        // Логика тапа (Tap-to-Move)
-        function handleTap(card) {
+        // Логика клика по слову
+        function handleCardClick(card) {
+            // Если кликнули по уже выбранному — снимаем выбор
+            if (selectedCard === card) {
+                card.classList.remove('selected');
+                selectedCard = null;
+                hintEl.textContent = "Tippe ein Wort an, dann tippe auf eine Kategorie.";
+                clearZoneHints();
+                return;
+            }
+
+            // Снимаем выбор с предыдущего
+            if (selectedCard) {
+                selectedCard.classList.remove('selected');
+            }
+
+            selectedCard = card;
+            card.classList.add('selected');
+
             var parent = card.parentElement;
-            
-            // Если карточка в боковой панели -> летит в Positiv
+            var where = "";
+
             if (parent === leftPanel || parent === rightPanel) {
-                positiveZone.appendChild(card);
-                card.classList.remove('correct', 'wrong');
-            } 
-            // Если карточка в Positiv -> летит в Negativ
-            else if (parent === positiveZone) {
-                negativeZone.appendChild(card);
-                card.classList.remove('correct', 'wrong');
-            } 
-            // Если карточка в Negativ -> возвращается в боковую панель (в левую)
-            else if (parent === negativeZone) {
-                leftPanel.appendChild(card);
-                card.classList.remove('correct', 'wrong');
+                where = "W&auml;hle jetzt: Positiv oder Negativ.";
+            } else if (parent === positiveZone || parent === negativeZone) {
+                where = "W&auml;hle: andere Kategorie oder Seitenleiste (zum Entfernen).";
+            }
+
+            hintEl.innerHTML = "Ausgew&auml;hlt: <b>" + card.textContent + "</b>. " + where;
+            highlightPossibleTargets(parent);
+        }
+
+        // Подсветка возможных целей
+        function highlightPossibleTargets(currentParent) {
+            clearZoneHints();
+            if (currentParent === leftPanel || currentParent === rightPanel) {
+                positiveZone.classList.add('target-hint');
+                negativeZone.classList.add('target-hint');
+            } else {
+                // Если слово в колонке — подсветим боковые панели
+                leftPanel.classList.add('target-hint');
+                rightPanel.classList.add('target-hint');
+                if (currentParent === positiveZone) {
+                    negativeZone.classList.add('target-hint');
+                } else if (currentParent === negativeZone) {
+                    positiveZone.classList.add('target-hint');
+                }
             }
         }
 
-        // Инициализация игры
+        function clearZoneHints() {
+            positiveZone.classList.remove('target-hint');
+            negativeZone.classList.remove('target-hint');
+            leftPanel.classList.remove('target-hint');
+            rightPanel.classList.remove('target-hint');
+        }
+
+        // Логика клика по зоне (куда переносим)
+        function handleZoneClick(zone) {
+            if (!selectedCard) {
+                hintEl.textContent = "Bitte zuerst ein Wort antippen.";
+                return;
+            }
+
+            // Нельзя положить слово в ту же самую зону, где оно уже лежит
+            if (selectedCard.parentElement === zone) {
+                hintEl.textContent = "Das Wort ist schon hier.";
+                return;
+            }
+
+            zone.appendChild(selectedCard);
+            selectedCard.classList.remove('selected', 'correct', 'wrong');
+            selectedCard = null;
+            clearZoneHints();
+            hintEl.textContent = "Tippe ein Wort an, dann tippe auf eine Kategorie.";
+            // Прячем старое сообщение, если было
+            messageEl.style.display = 'none';
+        }
+
+        // Инициализация
         function initGame() {
             leftPanel.innerHTML = '';
             rightPanel.innerHTML = '';
             positiveZone.innerHTML = '';
             negativeZone.innerHTML = '';
             messageEl.style.display = 'none';
-            
+            selectedCard = null;
+            clearZoneHints();
+            hintEl.textContent = "Tippe ein Wort an, dann tippe auf eine Kategorie.";
+
             var half = Math.ceil(shuffled.length / 2);
-            
+
             for (var i = 0; i < shuffled.length; i++) {
                 var card = createCard(shuffled[i].text, shuffled[i].type);
                 if (i < half) {
@@ -292,7 +361,16 @@
             }
         }
 
-        // Настройка зон сброса (для мыши)
+        // ==== Клик по зонам ====
+        [positiveZone, negativeZone, leftPanel, rightPanel].forEach(function(zone) {
+            zone.addEventListener('click', function(e) {
+                // Если кликнули не по карточке (карточки сами обрабатывают клик)
+                if (e.target.classList.contains('card')) return;
+                handleZoneClick(zone);
+            });
+        });
+
+        // ==== Drag & Drop (для компьютера) ====
         function setupDropZone(zone) {
             zone.addEventListener('dragover', function(e) {
                 e.preventDefault();
@@ -310,14 +388,19 @@
                 }
             });
         }
-
         setupDropZone(positiveZone);
         setupDropZone(negativeZone);
         setupDropZone(leftPanel);
         setupDropZone(rightPanel);
 
-        // Проверка ответов
+        // ==== Проверка ====
         function checkAnswers() {
+            if (selectedCard) {
+                selectedCard.classList.remove('selected');
+                selectedCard = null;
+                clearZoneHints();
+            }
+
             var allCards = document.querySelectorAll('.card');
             var correctCount = 0;
             var totalInZones = 0;
@@ -326,7 +409,7 @@
             for (var i = 0; i < allCards.length; i++) {
                 var card = allCards[i];
                 var parent = card.parentElement;
-                
+
                 if (parent === positiveZone || parent === negativeZone) {
                     totalInZones++;
                     var correctType = card.getAttribute('data-type');
@@ -347,7 +430,7 @@
             }
 
             messageEl.style.display = 'block';
-            
+
             if (totalInZones === 0) {
                 messageEl.textContent = "Bitte ziehe zuerst die W&ouml;rter in die Kategorien!";
                 messageEl.className = "msg-error";
@@ -365,10 +448,11 @@
         }
 
         function resetGame() {
+            // Перемешиваем слова заново
+            shuffled = wordsData.slice().sort(function() { return 0.5 - Math.random(); });
             initGame();
         }
 
-        // Запуск
         initGame();
     </script>
 </body>
